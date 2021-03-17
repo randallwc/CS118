@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="" />
+  <title>CS 118, Winter 2021 (UCLA): Build Your Own Router</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      word-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        background-color: #232629;
+        color: #7a7c7d;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #7a7c7d;  padding-left: 4px; }
+    div.sourceCode
+      { color: #cfcfc2; background-color: #232629; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #cfcfc2; } /* Normal */
+    code span.al { color: #95da4c; background-color: #4d1f24; font-weight: bold; } /* Alert */
+    code span.an { color: #3f8058; } /* Annotation */
+    code span.at { color: #2980b9; } /* Attribute */
+    code span.bn { color: #f67400; } /* BaseN */
+    code span.bu { color: #7f8c8d; } /* BuiltIn */
+    code span.cf { color: #fdbc4b; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #3daee9; } /* Char */
+    code span.cn { color: #27aeae; font-weight: bold; } /* Constant */
+    code span.co { color: #7a7c7d; } /* Comment */
+    code span.cv { color: #7f8c8d; } /* CommentVar */
+    code span.do { color: #a43340; } /* Documentation */
+    code span.dt { color: #2980b9; } /* DataType */
+    code span.dv { color: #f67400; } /* DecVal */
+    code span.er { color: #da4453; text-decoration: underline; } /* Error */
+    code span.ex { color: #0099ff; font-weight: bold; } /* Extension */
+    code span.fl { color: #f67400; } /* Float */
+    code span.fu { color: #8e44ad; } /* Function */
+    code span.im { color: #27ae60; } /* Import */
+    code span.in { color: #c45b00; } /* Information */
+    code span.kw { color: #cfcfc2; font-weight: bold; } /* Keyword */
+    code span.op { color: #cfcfc2; } /* Operator */
+    code span.ot { color: #27ae60; } /* Other */
+    code span.pp { color: #27ae60; } /* Preprocessor */
+    code span.re { color: #2980b9; background-color: #153042; } /* RegionMarker */
+    code span.sc { color: #3daee9; } /* SpecialChar */
+    code span.ss { color: #da4453; } /* SpecialString */
+    code span.st { color: #f44f4f; } /* String */
+    code span.va { color: #27aeae; } /* Variable */
+    code span.vs { color: #da4453; } /* VerbatimString */
+    code span.wa { color: #da4453; } /* Warning */
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  <style type="text/css">
+  /*
+   * I add this to html files generated with pandoc.
+   */
+
+  html {
+    font-size: 100%;
+    overflow-y: scroll;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  body {
+    color: #444;
+    font-family: Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman', serif;
+    font-size: 12px;
+    line-height: 1.7;
+    padding: 1em;
+    margin: auto;
+    max-width: 70%;
+    background: #fefefe;
+  }
+
+  a {
+    color: #0645ad;
+    text-decoration: none;
+  }
+
+  a:visited {
+    color: #0b0080;
+  }
+
+  a:hover {
+    color: #06e;
+  }
+
+  a:active {
+    color: #faa700;
+  }
+
+  a:focus {
+    outline: thin dotted;
+  }
+
+  *::-moz-selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #000;
+  }
+
+  *::selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #000;
+  }
+
+  a::-moz-selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #0645ad;
+  }
+
+  a::selection {
+    background: rgba(255, 255, 0, 0.3);
+    color: #0645ad;
+  }
+
+  p {
+    margin: 1em 0;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #111;
+    line-height: 125%;
+    margin-top: 2em;
+    font-weight: normal;
+  }
+
+  h4, h5, h6 {
+    font-weight: bold;
+  }
+
+  h1 {
+    font-size: 2.5em;
+  }
+
+  h2 {
+    font-size: 2em;
+  }
+
+  h3 {
+    font-size: 1.5em;
+  }
+
+  h4 {
+    font-size: 1.2em;
+  }
+
+  h5 {
+    font-size: 1em;
+  }
+
+  h6 {
+    font-size: 0.9em;
+  }
+
+  blockquote {
+    color: #666666;
+    margin: 0;
+    padding-left: 3em;
+    border-left: 0.5em #EEE solid;
+  }
+
+  hr {
+    display: block;
+    height: 2px;
+    border: 0;
+    border-top: 1px solid #aaa;
+    border-bottom: 1px solid #eee;
+    margin: 1em 0;
+    padding: 0;
+  }
+
+  pre, code, kbd, samp {
+    /*color: #000;*/
+    font-family: monospace, monospace;
+    _font-family: 'courier new', monospace;
+    font-size: 0.98em;
+  }
+
+  pre {
+    white-space: pre;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  b, strong {
+    font-weight: bold;
+  }
+
+  dfn {
+    font-style: italic;
+  }
+
+  ins {
+    background: #ff9;
+    color: #000;
+    text-decoration: none;
+  }
+
+  mark {
+    background: #ff0;
+    color: #000;
+    font-style: italic;
+    font-weight: bold;
+  }
+
+  sub, sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+
+  sup {
+    top: -0.5em;
+  }
+
+  sub {
+    bottom: -0.25em;
+  }
+
+  ul, ol {
+    margin: 1em 0;
+    padding: 0 0 0 2em;
+  }
+
+  li p:last-child {
+    margin-bottom: 0;
+  }
+
+  ul ul, ol ol {
+    margin: .3em 0;
+  }
+
+  dl {
+    margin-bottom: 1em;
+  }
+
+  dt {
+    font-weight: bold;
+    margin-bottom: .8em;
+  }
+
+  dd {
+    margin: 0 0 .8em 2em;
+  }
+
+  dd:last-child {
+    margin-bottom: 0;
+  }
+
+  img {
+    border: 0;
+    -ms-interpolation-mode: bicubic;
+    vertical-align: middle;
+  }
+
+  figure {
+    display: block;
+    text-align: center;
+    margin: 1em 0;
+  }
+
+  figure img {
+    border: none;
+    margin: 0 auto;
+  }
+
+  figcaption {
+    font-size: 0.8em;
+    font-style: italic;
+    margin: 0 0 .8em;
+  }
+
+  table {
+    margin-bottom: 2em;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+
+  table th {
+    padding: .2em 1em;
+    background-color: #eee;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+  }
+
+  table td {
+    padding: .2em 1em;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    vertical-align: top;
+  }
+
+  .author {
+    font-size: 1.2em;
+    text-align: left;
+  }
+
+  /*div.sourceCode {
+    border: #000 1px solid;
+    padding: 5px;
+  }*/
+
+  @media only screen and (min-width: 480px) {
+    body {
+      font-size: 14px;
+    }
+  }
+  @media only screen and (min-width: 768px) {
+    body {
+      font-size: 16px;
+    }
+  }
+  @media print {
+    * {
+      background: transparent !important;
+      color: black !important;
+      filter: none !important;
+      -ms-filter: none !important;
+    }
+
+    body {
+      font-size: 12pt;
+      max-width: 100%;
+    }
+
+    a, a:visited {
+      text-decoration: underline;
+    }
+
+    hr {
+      height: 1px;
+      border: 0;
+      border-bottom: 1px solid black;
+    }
+
+    a[href]:after {
+      content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+      content: " (" attr(title) ")";
+    }
+
+    .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after {
+      content: "";
+    }
+
+    pre, blockquote {
+      border: 1px solid #999;
+      padding-right: 1em;
+      page-break-inside: avoid;
+    }
+
+    tr, img {
+      page-break-inside: avoid;
+    }
+
+    img {
+      max-width: 100% !important;
+    }
+
+    @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+  }
+
+    @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+  }
+
+    p, h2, h3 {
+      orphans: 3;
+      widows: 3;
+    }
+
+    h2, h3 {
+      page-break-after: avoid;
+    }
+  }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CS 118, Winter 2021 (UCLA): Build Your Own Router</h1>
+<p class="author"></p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#project-overview">Project Overview</a>
+<ul>
+<li><a href="#ethernet-frames">Ethernet Frames</a></li>
+<li><a href="#ipv4-packets">IPv4 Packets</a></li>
+<li><a href="#icmp-packets">ICMP Packets</a></li>
+</ul></li>
+<li><a href="#environment-setup">Environment Setup</a>
+<ul>
+<li><a href="#initial-setup">Initial Setup</a></li>
+<li><a href="#running-your-router">Running Your Router</a></li>
+</ul></li>
+<li><a href="#starter-code-overview">Starter Code Overview</a>
+<ul>
+<li><a href="#key-methods">Key Methods</a></li>
+<li><a href="#debugging-functions">Debugging Functions</a></li>
+<li><a href="#logging-packets">Logging Packets</a></li>
+<li><a href="#length-of-assignment">Length of Assignment</a></li>
+</ul></li>
+<li><a href="#a-few-hints">A Few Hints</a></li>
+<li><a href="#submission-requirements">Submission Requirements</a></li>
+<li><a href="#grading">Grading</a>
+<ul>
+<li><a href="#grading-criteria">Grading Criteria</a></li>
+</ul></li>
+<li><a href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</nav>
+<p><strong>Revisions</strong></p>
+<ul>
+<li>Revision 5 (March 7, 2021): Add trailing slash to output directory in call to “server”.</li>
+<li>Revision 4 (March 5, 2021): Remove requirement to process broadcast Ethernet frames.</li>
+<li>Revision 3 (February 24, 2021): Clarify which key functions need to be implemented and which are already implemented.</li>
+<li>Revision 2 (February 16, 2021): Correct link to Vagrant software.</li>
+<li>Revision 1 (February 15, 2021): Initial release.</li>
+</ul>
+<h2 id="overview">Overview</h2>
+<p>In this project, you will need to write a simple router. Your router will receive raw Ethernet frames and process them just like a real router by forwarding them to the correct outgoing interface, performing longest-prefix matching lookups in the routing table, etc. The starter code provides a framework that receives Ethernet frames; it is your job to write the frame processing, handling, and forwarding logic. You are allowed to use some high-level abstractions, such as C++11 extensions, for parts of your code that are not directly related to networking, such as string parsing, multi-threading, etc.</p>
+<blockquote>
+<p><span class="emoji" data-emoji="warning">⚠️</span> <strong>Each student or group of up to two students must work on the project individually, without collaboration with anyone else.</strong></p>
+<p><strong>If working on this project in a group of two people, please only submit one copy of the project per group.</strong> <strong>Please indicate in the README and CCLE submission notes the name of your partner, if any.</strong></p>
+<p><strong>You are encouraged to host your code in a private repository on <a href="https://github.com">GitHub</a>, <a href="https://gitlab.com">GitLab</a>, or another similar site.</strong> <strong>At the same time, you are PROHIBITED from making your code for this project public either during the class or at any time thereafter.</strong></p>
+</blockquote>
+<h2 id="project-overview">Project Overview</h2>
+<p>This assignment runs on top of <a href="https://mininet.org">Mininet</a>. Mininet allows you to emulate a network topology on a single machine. It provides the needed isolation between the emulated nodes so that your router node can process and forward real Ethernet frames between the hosts like a real router. You don’t have to know how Mininet works to complete this assignment, but if you’re curious, you can learn more information about Mininet on its <a href="https://mininet.org">official website</a>.</p>
+<p>We have provided a virtual machine environment for your use when developing this project. This provides a standard environment for both development and grading to ensure there are no incompatibilities during grading. While it may be possible for you to develop and run your router on a different environment, we <strong>very strongly encourage</strong> you to use this environment. Instructions on how to set up and access this environment are provided in the <a href="#environment-setup">Environment Setup</a> section below.</p>
+<p>Your router will route real packets between emulated hosts in a single-router topology. The project environment and the starter code has the following default topology:</p>
+<pre><code>                                              +----------------+ server1-eth0
+                                              |                  192.168.2.2/24
+                                              +                   +-----------+
+                                          192.168.2.1/24          |           |
+                                          sw0-eth1                |  server1  |
++----------+                +------------------+                  |           |
+|          |                |                  |                  +-----------+
+|  client  |                |   SimpleRouter   |
+|          |                |      (sw0)       |
++----------+                |                  |
+client-eth0                 +------------------+                  +-----------+
+172.32.10.10/16           sw0-eth3        sw0-eth2                |           |
+      +             172.32.10.1/16        172.64.3.1/16           |  server2  |
+      |                      +                +                   |           |
+      |                      |                |                   +-----------+
+      |                      |                |                  server2-eth0
+      +----------------------+                +----------------+ 172.64.3.10/16</code></pre>
+<p>The corresponding routing table for the SimpleRouter <code>sw0</code> in this default topology is:</p>
+<pre><code>Destination  Gateway      Mask             Interface
+------------ ------------ ---------------- ----------
+0.0.0.0      172.32.10.10 0.0.0.0          sw0-eth3
+192.168.2.2  192.168.2.2  255.255.255.0    sw0-eth1
+172.64.3.10  172.64.3.10  255.255.0.0      sw0-eth2</code></pre>
+<blockquote>
+<p><span class="emoji" data-emoji="warning">⚠️</span> <strong>Do not hardcode any IP addresses, network, or interface information in your router implementation.</strong> <strong>We will be testing your code on other single-router topologies with different number of servers and clients, and different IP and network addresses.</strong></p>
+</blockquote>
+<p>Your simple router implementation is expected to:</p>
+<ul>
+<li>Handle Ethernet frames</li>
+<li>Handle IPv4 packets</li>
+<li>Handle ICMP packets</li>
+</ul>
+<p>If your implementation is functioning correctly, all of the following operations should succeed:</p>
+<ul>
+<li><p><code>ping</code> from the client to any of the router’s interfaces:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> client ping 192.168.2.1</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> client ping 172.64.3.1</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> client ping 172.32.10.1</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span></code></pre></div></li>
+<li><p><code>ping</code> from the client to any of the app servers:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> client ping server1  <span class="co"># or client ping 192.168.2.2</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> client ping server2  <span class="co"># or client ping 172.64.3.10</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span></code></pre></div></li>
+<li><p>Transferring a file from the client to one of the server(s) using the provided <code>client</code> and <code>server</code> applications.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> server1 /vagrant/server 5678 /vagrant/ <span class="kw">&amp;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> client /vagrant/client 192.168.2.2 5678 /vagrant/test_small.file <span class="kw">&amp;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span></code></pre></div></li>
+</ul>
+<h3 id="ethernet-frames">Ethernet Frames</h3>
+<p>A data packet on a physical Ethernet link is called an Ethernet packet, which transports an Ethernet frame as its payload.</p>
+<p>The starter code will provide you with a <a href="https://en.wikipedia.org/wiki/Ethernet_frame">raw Ethernet frame</a>. Your implementation should read the ethernet header to extract the source and destination MAC addresses, as well as as the Ethernet payload type, and properly dispatch the frame to the protocol indicated by the Ethernet payload type.</p>
+<pre><code>0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Destination Address                                       |
++         (48 bits)             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |          Source Address       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+             (48 bits)         +
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|        Type (16 bits)         |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+|                                                               |
+|                                                               |
+~                          Payload                              ~
+|                                                               |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</code></pre>
+<p>Note that the actual Ethernet frame also includes a 32-bit Cyclical Redundancy Check (CRC). In this project, you will not need it, as it will be added automatically. Your router will need to support the following payload types:</p>
+<ul>
+<li><p><code>Type</code>: Payload type</p>
+<ul>
+<li><code>0x0800</code> (IPv4)</li>
+</ul></li>
+</ul>
+<p>For your convenience, the starter code defines the <code>ethernet_hdr</code> struct in <code>core/protocol.hpp</code>. This struct contains the following Ethernet header fields:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ethernet_hdr</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  ether_dhost[ETHER_ADDR_LEN]; <span class="co">/* Ethernet destination address */</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span>  ether_shost[ETHER_ADDR_LEN]; <span class="co">/* Ethernet source address */</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> <span class="dt">ether_type</span>;                  <span class="co">/* payload type */</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>} <span class="ex">__attribute__ ((packed))</span>;</span></code></pre></div>
+<p>You can easily access the Ethernet header fields in a received packet or in a new packet (that will be sent out by your router) by casting the raw frame into a pointer of this type:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ethernet_hdr* ethHdr = (<span class="kw">struct</span> ethernet_hdr*)packet.data();</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">// The header fields can then be accessed and written to like so:</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>ethHdr-&gt;ether_dhost</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ethHdr-&gt;ether_shost</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>ethHdr-&gt;<span class="dt">ether_type</span></span></code></pre></div>
+<p><strong>Requirements</strong></p>
+<ul>
+<li><p>Your router <strong>must</strong> ignore Ethernet frames with a payload type other than IPv4.</p></li>
+<li><p>Your router <strong>must</strong> ignore Ethernet frames not destined to the router, meaning any frame where the destination hardware address is not the corresponding MAC address of the interface.</p></li>
+<li><p>Your router <strong>must</strong> appropriately dispatch the payload of Ethernet frames when this payload contains an IPv4 packet.</p></li>
+</ul>
+<h3 id="ipv4-packets">IPv4 Packets</h3>
+<p><a href="https://en.wikipedia.org/wiki/IPv4">Internet Protocol version 4 (IPv4)</a> (<a href="https://tools.ietf.org/html/rfc791">RFC 791</a>) is the dominant communication protocol for relaying datagrams across network boundaries. Its routing function enables internetworking, which is the central principle behind the operation of the Internet. IP is tasked with delivering a packet from a source host to a destination host solely using IP addresses located in the packet header. To accomplish this, IP defines packet structures that encapsulate the data to be delivered. It also defines addressing methods that are used to label the datagram with source and destination information.</p>
+<pre><code>    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |Version|  IHL  |Type of Service|          Total Length         |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |         Identification        |Flags|      Fragment Offset    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Time to Live |    Protocol   |         Header Checksum       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                       Source Address                          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                    Destination Address                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                    Options                    |    Padding    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    |                                                               |
+    ~                          Payload                              ~
+    |                                                               |
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</code></pre>
+<p>For your convenience, the starter code defines the <code>ip_hdr</code> struct in <code>core/protocol.hpp</code>. This struct contains the following IPv4 header fields:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ip_hdr</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> ip_hl:<span class="dv">4</span>;        <span class="co">/* Header length */</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">unsigned</span> <span class="dt">int</span> ip_v:<span class="dv">4</span>;         <span class="co">/* Version */</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> ip_tos;              <span class="co">/* Type of service */</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> ip_len;             <span class="co">/* Total length */</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> ip_id;              <span class="co">/* Identification */</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> ip_off;             <span class="co">/* Fragment offset */</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> ip_ttl;              <span class="co">/* Time-to-live (TTL) */</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> ip_p;                <span class="co">/* Protocol */</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> ip_sum;             <span class="co">/* Checksum */</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> ip_src;             <span class="co">/* Source IP address */</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint32_t</span> ip_dst;             <span class="co">/* Destination IP address */</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>} <span class="ex">__attribute__ ((packed))</span>;</span></code></pre></div>
+<p>You can easily access the IP header fields in a received packet or in a new packet (that will be sent out by your router) by casting the raw frame into a pointer of this type:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> ip_hdr* ipHdr = (<span class="kw">struct</span> ip_hdr*)(packet.data() + <span class="kw">sizeof</span>(<span class="kw">struct</span> ethernet_hdr));</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">// The header fields can then be accessed and written to like so:</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>ipHdr-&gt;ip_src</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>ipHdr-&gt;ip_dst</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>...</span></code></pre></div>
+<p><strong>Requirements</strong></p>
+<ul>
+<li><p>For each incoming IPv4 packet, your router <strong>must</strong> verify that its checksum is valid and minimum length is at least as long as required (20 bytes minimum).</p>
+<ul>
+<li>Invalid packets <strong>must</strong> be discarded (a proper ICMP error response is <strong>NOT</strong> required for this project).</li>
+</ul></li>
+<li><p>Your router should classify datagrams into two categories: (1) those destined to the router (i.e., to one of the IP addresses of the router), and (2) those to be forwarded:</p>
+<ul>
+<li><p>For (1), if the packet carries an ICMP payload, it should be properly dispatched. Otherwise, it <strong>should</strong> be discarded (a proper ICMP error response is <strong>NOT</strong> required for this project).</p></li>
+<li><p>For (2), your router <strong>must</strong> use the longest prefix match algorithm to find a next-hop IP address in the routing table and attempt to forward the packet to that host.</p></li>
+</ul></li>
+<li><p>For each forwarded IPv4 packet, your router <strong>must</strong> correctly decrement its TTL and recompute its checksum.</p></li>
+</ul>
+<h3 id="icmp-packets">ICMP Packets</h3>
+<p>The <a href="https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol">Internet Control Message Protocol (ICMP)</a> (<a href="https://tools.ietf.org/html/rfc792">RFC 792</a>) is a simple protocol that can be used to send control information to a host. In this assignment, your router will use ICMP to respond to “ping” messages sent to it by other hosts.</p>
+<p>A “ping” exchange takes the form of an ICMP <code>Echo</code> message sent to a destination, followed by the destination responding to the sender with an ICMP <code>Echo Reply</code> message. <code>Echo</code> and <code>Echo Reply</code> ICMP messages are structured as follows (contained within the payload of an IPv4 packet):</p>
+<pre><code>     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |     Type      |    Code = 0   |          Checksum             |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |           Identifier          |        Sequence Number        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |     Data ...
+    +-+-+-+-+-</code></pre>
+<ul>
+<li><code>Type</code>
+<ul>
+<li><code>8</code>: echo message</li>
+<li><code>0</code>: echo reply message</li>
+</ul></li>
+</ul>
+<p>When an ICMP message is composed by a router, the source address field of the IP header can be the IP address of any of the router’s interfaces, as specified in <a href="https://tools.ietf.org/html/rfc792">RFC 792</a>.</p>
+<p>Note that, unlike the IP header checksum, the ICMP header checksum covers <strong>both</strong> the ICMP header and the “Data” field.</p>
+<p>For your convenience, the starter code defines the <code>icmp_hdr</code> struct in <code>core/protocol.hpp</code>. This struct contains the following IPv4 header fields:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> icmp_hdr</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> <span class="dt">icmp_type</span>;      <span class="co">/* Type */</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint8_t</span> icmp_code;      <span class="co">/* Code */</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> icmp_sum;      <span class="co">/* Checksum */</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> icmp_id;       <span class="co">/* Identifier */</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">uint16_t</span> icmp_seq;      <span class="co">/* Sequence number */</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>} <span class="ex">__attribute__ ((packed))</span>;</span></code></pre></div>
+<p>You can easily access the ICMP header fields in a received packet or in a new packet (that will be sent out by your router) by casting the raw frame into a pointer of this type:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> icmp_hdr* icmpHdr = (<span class="kw">struct</span> icmp_hdr*)(packet.data() + <span class="kw">sizeof</span>(<span class="kw">struct</span> ethernet_hdr)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    + <span class="kw">sizeof</span>(<span class="kw">struct</span> ip_hdr));</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">// The header fields can then be accessed and written to like so:</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>icmpHdr-&gt;<span class="dt">icmp_type</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>icmpHdr-&gt;icmp_code</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>icmpHdr-&gt;icmp_sum</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>icmpHdr-&gt;icmp_id</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>icmpHdr-&gt;icmp_seq</span></code></pre></div>
+<p>You may wish to create additional structs for ICMP messages. If you do so, make sure to use the <code>packed</code> attribute (as above) so that the compiler doesn’t try to align the fields in the struct to word boundaries.</p>
+<p><strong>Requirements</strong></p>
+<p>Your router <strong>must</strong> properly generate the following ICMP messages, including proper ICMP header checksums:</p>
+<ul>
+<li><p>For each incoming ICMP <code>Echo</code> message (<code>Type=8</code>) packet that is destined to one of the router’s interfaces, your router <strong>must</strong> verify the ICMP checksum and discard the packet if the checksum is wrong. As mentioned above, please note that the ICMP checksum covers <strong>both</strong> the ICMP header and the data after the header.</p></li>
+<li><p>Echo requests sent to other IP addresses <strong>must</strong> be forwarded to their respective next hop addresses, just like TCP and UDP segments contained in IPv4 packets.</p></li>
+<li><p>Your router <strong>must</strong> generate an <code>Echo Reply</code> message (<code>Type=0</code>) in response to an incoming <code>Echo</code> message (<code>Type=8</code>) destined to one of the router’s interface IP addresses.</p></li>
+<li><p>The <code>TTL</code> field in the IP header <strong>must</strong> be set to <code>64</code> when your router creates a new <code>Echo Reply</code> message.</p></li>
+</ul>
+<h2 id="environment-setup">Environment Setup</h2>
+<h3 id="initial-setup">Initial Setup</h3>
+<p>For this project, you should use the provided Vagrant environment, as it installs several critical dependencies and starts all necessary daemons. You can follow the instructions in the <code>Vagrantfile</code> file to recreate the environment natively, but you do so at your own risk. <a href="https://vagrantup.com">Vagrant</a> is a virtualization manager that greatly simplifies the process of creating and managing virtual machines. Vagrant requires that you have a virtualization engine installed – we recommend the open source <a href="https://virtualbox.org">VirtualBox</a> platform for this purpose.</p>
+<p>After installing both VirtualBox and Vagrant (in that order), launch a terminal and run the following commands:</p>
+<ol type="1">
+<li><p>Clone the project template repository:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/eric135/cs118_router_project ~/cs118-router</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> ~/cs118-router</span></code></pre></div></li>
+<li><p>Initialize the VM:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> up</span></code></pre></div></li>
+<li><p>Establish an SSH session to the created VM:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> ssh</span></code></pre></div>
+<p>In this project you will need to open at least two simultaneous SSH sessions to the VM: one running Mininet to emulate the network topology and run commands on the emulated nodes, and another to build and run your router implementation. You can also accomplish this with <code>screen</code> (or <code>tmux</code>) – further details on this second method are provided in the “Running Your Router” section below.</p>
+<blockquote>
+<p><span class="emoji" data-emoji="warning">⚠️</span> <strong>Do not start the VM instance manually from the VirtualBox GUI. Otherwise, you may encounter various issues, including connection errors, connection timeouts, missing packets, and so on.</strong></p>
+</blockquote></li>
+<li><p>Work on your project:</p>
+<p>All files in the <code>~/cs118-router</code> directory on your host machine will be automatically synchronized with the <code>/vagrant</code> directory on your virtual machine. To compile your code, run the following commands in one of your SSH sessions:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /vagrant</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span></code></pre></div></li>
+</ol>
+<h4 id="notes">Notes</h4>
+<ul>
+<li><p>To stop the VM, one can run (from your host machine):</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> halt</span></code></pre></div></li>
+<li><p>If your VM is encountering strange issues, you can reboot it by running (from your host machine):</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> reload</span></code></pre></div></li>
+</ul>
+<h3 id="running-your-router">Running Your Router</h3>
+<p>To run your router, you will need to run in two commands in parallel: (1) the Mininet process that the emulates network topology and (2) your router. For ease of debugging, you can run them in <code>screen</code> (or <code>tmux</code>) environments or simply in separate SSH sessions (as discussed above):</p>
+<ul>
+<li><p>To run the Mininet network emulation process:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> ssh <span class="co">#  or   vagrant ssh -- -Y</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /vagrant</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> python3 ./run.py <span class="co"># must be run as superuser</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="ex">...</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span></span></code></pre></div></li>
+<li><p>To run your router:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">vagrant</span> ssh</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /vagrant</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a> <span class="co"># implement your router logic -- see below</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./router</span></span></code></pre></div>
+<p><span class="label label-info">Note</span> If after starting your router, you see the following message:</p>
+<pre><code>Resetting SimpleRouter with 0 ports
+Interface list empty</code></pre>
+<p>You need to start or restart the Mininet process. The expected initial output is something like the following:</p>
+<pre><code>Resetting SimpleRouter with 3 ports
+sw0-eth1 (192.168.2.1, f6:fc:48:40:43:af)
+sw0-eth2 (172.64.3.1, 56:be:8e:bd:91:bf)
+sw0-eth3 (172.32.10.1, 22:69:6c:08:25:e9)
+...</code></pre></li>
+</ul>
+<p>The VM environment you’re using in this project runs a process that redirects packets from the Mininet-emulated switch to your router. If you want to see debug output of that redirector, you can use the <code>journalctl</code> command:</p>
+<pre><code>root@vagrant:/vagrant/# journalctl -f _SYSTEMD_UNIT=pox.service
+-- Logs begin at Sat 2017-04-08 20:51:21 UTC. --
+Apr 09 19:57:48 vagrant pox.py[8879]: POX 0.5.0 (eel) / Copyright 2011-2014 James McCauley, et al.
+Apr 09 19:57:48 vagrant pox.py[8879]: INFO:.usr.local.lib.python2.7.dist-packages.ucla_cs118.pox_rpc_server:Starting packet redirector...
+Apr 09 19:57:48 vagrant pox.py[8879]: -- 04/09/17 19:57:48.798 Network: listening for tcp connections at 127.0.0.1:8888
+Apr 09 19:57:48 vagrant pox.py[8879]: -- 04/09/17 19:57:48.798 Network: published endpoints for object adapter `SimpleRouter&#39;:
+Apr 09 19:57:48 vagrant pox.py[8879]:    tcp -h 127.0.0.1 -p 8888
+Apr 09 19:57:48 vagrant pox.py[8879]: -- 04/09/17 19:57:48.799 Network: accepting tcp connections at 127.0.0.1:8888
+Apr 09 19:57:48 vagrant pox.py[8879]: INFO:core:POX 0.5.0 (eel) is up.
+...</code></pre>
+<h2 id="starter-code-overview">Starter Code Overview</h2>
+<p>Here is the overal structure of the starter code:</p>
+<pre><code>                    simple-router.hpp
+                    +--------------+            core/protocol.hpp
+                    |              |
+                    | SimpleRouter |            core/utils.hpp
+                    |              |
+                    +---+-----+----+
+        m_routingTable 1 | | | 1       m_ifaces
+        +----------------+ | +----------------+
+        |                  | 1                |
+        |                  | m_arp            |
+        |                  |                  |
+        | 1                | 1                | N
+        v                  v                  v
++-------+-------+    +-----+------+     +-----+-----+
+|               |    |            |     |           |
+| RoutingTable  |    |  ArpCache  |     | Interface |
+|               |    |            |     |           |
++---------------+    +------------+     +-----------+</code></pre>
+<p>routing-table.hpp arp-cache.hpp core/interface.hpp</p>
+<ul>
+<li><p><code>SimpleRouter</code> (<code>simple-router.hpp|cpp</code>)</p>
+<p>The main class for your simple router, encapsulating <code>RoutingTable</code> and a set of <code>Interface</code> objects, as well as other portions of the implementation that already have been implemented.</p></li>
+<li><p><code>Interface</code> (<code>core/interface.hpp</code>)</p>
+<p>A class containing information about a specific interface of the router, including the interface name (<code>name</code>), hardware address (<code>addr</code>), and IPv4 address (<code>ip</code>).</p></li>
+<li><p><code>RoutingTable</code> (<code>routing-table.hpp|cpp</code>)</p>
+<p>A class implementing a simple routing table for your router. The contents of the routing table are automatically loaded from a text file, with the default filename for this file being <code>RTABLE</code> (the name can be changed using the <code>RoutingTable</code> option in the <code>router.config</code> config file).</p></li>
+</ul>
+<h3 id="key-methods">Key Methods</h3>
+<p>Your router receives raw Ethernet frames and sends raw Ethernet frames, either sending a reply to the sending host or forwarding its frame to the appropriate next hop. The key functions for these operations are as follows:</p>
+<ul>
+<li><p><strong>Need to implement</strong></p>
+<p>Method that receives a raw Ethernet frame received on an interface (<code>simple-router.hpp|cpp</code>):</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * This method is called each time the router receives a packet on</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * an interface.  The packet buffer </span><span class="an">\p</span><span class="co"> </span><span class="cv">packet</span><span class="co"> and the receiving</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"> * interface </span><span class="an">\p</span><span class="co"> </span><span class="cv">inIface</span><span class="co"> are passed in as parameters.</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>SimpleRouter::handlePacket(<span class="at">const</span> Buffer&amp; packet, <span class="at">const</span> <span class="bu">std::</span>string&amp; inIface);</span></code></pre></div></li>
+<li><p><em>Implemented</em></p>
+<p>Method to send raw Ethernet frames (<code>simple-router.hpp|cpp</code>):</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * Call this method to send packet </span><span class="an">\p</span><span class="co"> </span><span class="cv">packet</span><span class="co"> on interface </span><span class="an">\p</span><span class="co"> outIface</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>SimpleRouter::sendPacket(<span class="at">const</span> Buffer&amp; packet, <span class="at">const</span> <span class="bu">std::</span>string&amp; outIface);</span></code></pre></div></li>
+<li><p><em>Implemented</em></p>
+<p>Method to handle ARP cache events (<code>arp-cache.hpp|cpp</code>):</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * This method is called every second. For each request sent out,</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * it should keep checking whether to resend a request or remove it.</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>ArpCache::periodicCheckArpRequestsAndCacheEntries();</span></code></pre></div></li>
+<li><p><strong>Need to implement</strong></p>
+<p>Method to look up the best matching entry in the routing table (<code>routing-table.hpp|cpp</code>):</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">/**</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"> * This method should lookup a proper entry in the routing table</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co"> * using the &quot;longest-prefix matching&quot; algorithm</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a><span class="co"> */</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a> RoutingTableEntry</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a> RoutingTable::lookup(<span class="dt">uint32_t</span> ip) <span class="at">const</span>;</span></code></pre></div></li>
+</ul>
+<h3 id="debugging-functions">Debugging Functions</h3>
+<p>We have provided you with some basic debugging functions in <code>core/utils.hpp</code>. Feel free to use them to print out network header information from your packets. Below are some functions you may find useful:</p>
+<ul>
+<li><p><code>print_hdrs(const uint8_t *buf, uint32_t length)</code>, <code>print_hdrs(const Buffer&amp; packet)</code></p>
+<p>Print out all possible headers starting from the Ethernet header in the packet</p></li>
+<li><p><code>ipToString(uint32_t ip)</code>, <code>ipToString(const in_addr&amp; address)</code></p>
+<p>Print out a formatted IP address from a <code>uint32_t</code> or <code>in_addr</code>. Make sure you are passing the IP address in the correct byte ordering.</p></li>
+</ul>
+<h3 id="logging-packets">Logging Packets</h3>
+<p>You can use Mininet to monitor traffic that is sent and received by the emulated nodes, i.e., “router”, “server1” and “server2”. For example, to see the packets sent and received by the <code>server1</code> node, use the following command from the Mininet command-line interface (CLI):</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> server1 sudo tcpdump <span class="at">-n</span> <span class="at">-i</span> server1-eth0</span></code></pre></div>
+<p>Alternatively, you can start a terminal inside <code>server1</code> using the following command</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mininet</span><span class="op">&gt;</span> xterm server1</span></code></pre></div>
+<p>and then from inside the newly opened <code>xterm</code>, one can run:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo tcpdump <span class="at">-n</span> <span class="at">-i</span> server1-eth0</span></code></pre></div>
+<h3 id="length-of-assignment">Length of Assignment</h3>
+<p><strong>This assignment is considerably harder than Project 1, so get an early start and make use of Piazza! We highly recommend that this project be worked on in groups of two.</strong></p>
+<h2 id="a-few-hints">A Few Hints</h2>
+<p>Given a raw Ethernet frame, if the frame contains an IP packet that is not destined toward one of our interfaces:</p>
+<ul>
+<li><p>Sanity-check the packet (i.e., ensure it meets the minimum length and has a valid checksum).</p></li>
+<li><p>Decrement its TTL by 1 and then recompute the packet checksum over the modified header.</p></li>
+<li><p>Find out which entry in the routing table has the longest prefix match with the packet’s destination IP address.</p></li>
+<li><p>Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP using <code>ArpCache::lookup</code>. If a mapping is found, use it to generate an Ethernet frame and send the packet on the appropriate nexthop you obtained in the previous step. Otherwise, queue an ARP request for the next-hop IP using <code>ArpCache::queueRequest</code>.</p></li>
+</ul>
+<p>If an incoming IP packet is destined toward one of your router’s IP addresses, you should take the following actions, consistent with the section on protocols above:</p>
+<ul>
+<li><p>If the packet is an ICMP echo request and its checksum is valid, send an ICMP echo reply to the sending host.</p></li>
+<li><p>Otherwise, ignore the packet. Packets destined elsewhere should be forwarded using your normal forwarding logic.</p></li>
+</ul>
+<p>Obviously, this is a very simplified version of the forwarding process, and excludes many low-level details.</p>
+<h2 id="submission-requirements">Submission Requirements</h2>
+<p>To submit your project:</p>
+<ol type="1">
+<li><p>Create a <code>README.md</code> file placed in your code that includes:</p>
+<ul>
+<li>Name and UID of each team member (up to 2 members in one team).</li>
+<li>Acknowledgement of any online tutorials or code examples (except materials from this course) you used for this project.</li>
+</ul></li>
+<li><p>All of your source code, <code>Makefile</code>, <code>README.md</code>, and <code>Vagrantfile</code>. <strong>Make sure to update the <code>Makefile</code> to include the UCLA UIDs of any project members (leaving <code>USERID2</code> empty if you completed this project solo).</strong></p></li>
+<li><p>Remove all custom test files (especially large test files) before creating your submission tarball.</p></li>
+<li><p>Use the provided <code>Makefile</code> in the starter code to create a tarball.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> tarball</span></code></pre></div></li>
+<li><p>Submit the resulting tarball using the CCLE project submission page.</p></li>
+</ol>
+<p>Before submission, please make sure that:</p>
+<ul>
+<li>Your code compiles.</li>
+<li>Your implementation conforms to the specification.</li>
+<li>Your <code>.tar.gz</code> archive does not contain temporary or otherwise unnecessary files. Otherwise, we will deduct points.</li>
+</ul>
+<blockquote>
+<p><span class="emoji" data-emoji="warning">⚠️</span> Submissions that do not compile will not receive any credit.</p>
+</blockquote>
+<h2 id="grading">Grading</h2>
+<h3 id="grading-criteria">Grading Criteria</h3>
+<p>Note that test cases and points are subject adjustments.</p>
+<ol type="1">
+<li><p>Ping tests (50 points)</p>
+<ul>
+<li><p>1.1. (15 points) Pings from client to all other hosts (all pings expected to succeed).</p></li>
+<li><p>1.2. (10 points) Pings from server1 to all other hosts (all pings expected to succeed).</p></li>
+<li><p>1.3. (10 points) Pings from server2 to all other hosts (all pings expected to succeed).</p></li>
+<li><p>1.4. (15 points) Ping responses (from client) have proper TTLs.</p></li>
+</ul></li>
+<li><p>File transfer tests (40 points)</p>
+<ul>
+<li><p>2.1. (10 points) Transfer a small file (50KB) from client to server.</p></li>
+<li><p>2.2. (10 points) transfer a medium file (1MB) from client to server.</p></li>
+<li><p>2.3. (20 points) transfer a large file (10MB) from client to server.</p></li>
+</ul></li>
+<li><p>Whether the submitted tarball includes extraneous files (10 points)</p></li>
+</ol>
+<blockquote>
+<p><span class="emoji" data-emoji="warning">⚠️</span> Note that your router should work in other single-router network topologies with different routing tables, interface names, and IP addresses.</p>
+</blockquote>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>This project is based on an earlier <a href="http://web.cs.ucla.edu/classes/spring17/cs118/project-3.html">CS 118 class project</a> originally created by Prof. Alexander Afanasyev (now of Florida International University), which was in turn based on the <a href="http://web.stanford.edu/class/cs144/">Stanford CS 144 class project</a> by Prof. Philip Levis and Prof. Nick McKeown.</p>
+</body>
+</html>
